@@ -412,6 +412,74 @@ LilycoveCity_EventScript_DontKnowAboutBerryBlender::
 	msgbox LilycoveCity_Text_ExplainBerryBlender, MSGBOX_DEFAULT
 	return
 
+LilycoveCity_EventScript_EonTicketOldMan::
+	lock
+	faceplayer
+	goto_if_unset FLAG_SYS_GAME_CLEAR, LilycoveCity_EventScript_EonTicketOldMan_NotYet
+	checkitem ITEM_EON_TICKET
+	goto_if_eq VAR_RESULT, FALSE, LilycoveCity_EventScript_EonTicketOldMan_NeedGive
+	checkitem ITEM_MYSTIC_TICKET
+	goto_if_eq VAR_RESULT, FALSE, LilycoveCity_EventScript_EonTicketOldMan_NeedGive
+	checkitem ITEM_AURORA_TICKET
+	goto_if_eq VAR_RESULT, FALSE, LilycoveCity_EventScript_EonTicketOldMan_NeedGive
+	checkitem ITEM_OLD_SEA_MAP
+	goto_if_eq VAR_RESULT, FALSE, LilycoveCity_EventScript_EonTicketOldMan_NeedGive
+	msgbox LilycoveCity_Text_EonTicketOldMan_AlreadyGave, MSGBOX_DEFAULT
+	release
+	end
+
+LilycoveCity_EventScript_EonTicketOldMan_NeedGive::
+	msgbox LilycoveCity_Text_EonTicketOldMan_Congratulations, MSGBOX_DEFAULT
+
+	checkitem ITEM_EON_TICKET
+	goto_if_eq VAR_RESULT, TRUE, LilycoveCity_EventScript_EonTicketOldMan_SkipEon
+	checkitemspace ITEM_EON_TICKET
+	goto_if_eq VAR_RESULT, FALSE, LilycoveCity_EventScript_EonTicketOldMan_BagFull
+	giveitem ITEM_EON_TICKET
+	setflag FLAG_ENABLE_SHIP_SOUTHERN_ISLAND
+
+LilycoveCity_EventScript_EonTicketOldMan_SkipEon::
+	checkitem ITEM_MYSTIC_TICKET
+	goto_if_eq VAR_RESULT, TRUE, LilycoveCity_EventScript_EonTicketOldMan_SkipMystic
+	checkitemspace ITEM_MYSTIC_TICKET
+	goto_if_eq VAR_RESULT, FALSE, LilycoveCity_EventScript_EonTicketOldMan_BagFull
+	giveitem ITEM_MYSTIC_TICKET
+	setflag FLAG_ENABLE_SHIP_NAVEL_ROCK
+	setflag FLAG_RECEIVED_MYSTIC_TICKET
+
+LilycoveCity_EventScript_EonTicketOldMan_SkipMystic::
+	checkitem ITEM_AURORA_TICKET
+	goto_if_eq VAR_RESULT, TRUE, LilycoveCity_EventScript_EonTicketOldMan_SkipAurora
+	checkitemspace ITEM_AURORA_TICKET
+	goto_if_eq VAR_RESULT, FALSE, LilycoveCity_EventScript_EonTicketOldMan_BagFull
+	giveitem ITEM_AURORA_TICKET
+	setflag FLAG_ENABLE_SHIP_BIRTH_ISLAND
+	setflag FLAG_RECEIVED_AURORA_TICKET
+
+LilycoveCity_EventScript_EonTicketOldMan_SkipAurora::
+	checkitem ITEM_OLD_SEA_MAP
+	goto_if_eq VAR_RESULT, TRUE, LilycoveCity_EventScript_EonTicketOldMan_DoneGiving
+	checkitemspace ITEM_OLD_SEA_MAP
+	goto_if_eq VAR_RESULT, FALSE, LilycoveCity_EventScript_EonTicketOldMan_BagFull
+	giveitem ITEM_OLD_SEA_MAP
+	setflag FLAG_ENABLE_SHIP_FARAWAY_ISLAND
+	setflag FLAG_RECEIVED_OLD_SEA_MAP
+
+LilycoveCity_EventScript_EonTicketOldMan_DoneGiving::
+	msgbox LilycoveCity_Text_EonTicketOldMan_Enjoy, MSGBOX_DEFAULT
+	release
+	end
+
+LilycoveCity_EventScript_EonTicketOldMan_BagFull::
+	msgbox LilycoveCity_Text_EonTicketOldMan_BagFull, MSGBOX_DEFAULT
+	release
+	end
+
+LilycoveCity_EventScript_EonTicketOldMan_NotYet::
+	msgbox LilycoveCity_Text_EonTicketOldMan_NotYet, MSGBOX_DEFAULT
+	release
+	end
+
 LilycoveCity_Text_MayShoppingLetsBattle:
 	.string "MAY: Oh, hey?\n"
 	.string "{PLAYER}{KUN}, are you shopping, too?\p"
@@ -758,4 +826,34 @@ LilycoveCity_Text_HoneymoonVowToSeeRarePokemon:
 	.string "So we were delighted to see a rare\n"
 	.string "POKéMON as soon as we arrived.\p"
 	.string "I mean, we are totally happy!$"
+
+LilycoveCity_Text_EonTicketOldMan_NotYet:
+	.string "Ah, young TRAINER!\p"
+	.string "I've been waiting here for many years,\n"
+	.string "watching the sea and the lighthouse.$"
+
+LilycoveCity_Text_EonTicketOldMan_Congratulations:
+	.string "Ah, young TRAINER!\p"
+	.string "I've been waiting here for many years,\n"
+	.string "watching the sea and the lighthouse.\p"
+	.string "You remind me of myself in my youth.\n"
+	.string "So full of spirit and determination!\p"
+	.string "I want you to have these.\p"
+	.string "Show them to the ferry sailors, and\n"
+	.string "they'll know where to take you!$"
+
+LilycoveCity_Text_EonTicketOldMan_Enjoy:
+	.string "Enjoy your journey, young CHAMPION!\p"
+	.string "May you encounter many wonderful\n"
+	.string "POKéMON on your adventures!$"
+
+LilycoveCity_Text_EonTicketOldMan_AlreadyGave:
+	.string "Enjoy your journey, young CHAMPION!\p"
+	.string "May you encounter many wonderful\n"
+	.string "POKéMON on your adventures!$"
+
+LilycoveCity_Text_EonTicketOldMan_BagFull:
+	.string "Oh my! Your BAG is full!\p"
+	.string "Make some room in your KEY ITEMS\n"
+	.string "POCKET and come back to see me.$"
 
