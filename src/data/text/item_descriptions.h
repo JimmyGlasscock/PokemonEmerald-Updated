@@ -798,6 +798,10 @@ static const u8 sEverstoneDesc[] = _(
     "item that prevents\n"
     "evolution.");
 
+static const u8 sTradeStoneDesc[] = _(
+    "Makes certain\n"
+    "species of POKéMON\n"
+    "evolve.");
 static const u8 sFocusBandDesc[] = _(
     "A hold item that\n"
     "occasionally\n"

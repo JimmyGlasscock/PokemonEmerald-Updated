@@ -398,6 +398,7 @@
 #define ITEM_DOME_FOSSIL 358
 #define ITEM_SILPH_SCOPE 359
 #define ITEM_BICYCLE 360
+#define ITEM_TRADE_STONE 377
 #define ITEM_TOWN_MAP 361
 #define ITEM_VS_SEEKER 362
 #define ITEM_FAME_CHECKER 363
@@ -417,7 +418,7 @@
 #define ITEM_MAGMA_EMBLEM 375
 #define ITEM_OLD_SEA_MAP 376
 
-#define ITEMS_COUNT 377
+#define ITEMS_COUNT 378
 
 // A special item id associated with "Cancel"/"Exit" etc. in a list of items or decorations
 // Its icon is defined at ITEMS_COUNT as the "return to field" arrow
@@ -477,6 +478,9 @@
 #define ITEM_B_USE_OTHER    2
 
 // Check if the item is one that can be used on a Pokemon.
-#define ITEM_HAS_EFFECT(item) ((item) >= ITEM_POTION && (item) <= MAX_BERRY_INDEX)
+#define ITEM_HAS_EFFECT(item) (((item) >= ITEM_POTION && (item) <= MAX_BERRY_INDEX) \
+                               || (item) == ITEM_TRADE_STONE \
+                               || (item) == ITEM_DEEP_SEA_TOOTH \
+                               || (item) == ITEM_DEEP_SEA_SCALE)
 
 #endif  // GUARD_CONSTANTS_ITEMS_H

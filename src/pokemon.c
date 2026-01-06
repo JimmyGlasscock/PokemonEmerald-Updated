@@ -5567,8 +5567,24 @@ u16 GetEvolutionTargetSpecies(struct Pokemon *mon, u8 mode, u16 evolutionItem)
     case EVO_MODE_ITEM_CHECK:
         for (i = 0; i < EVOS_PER_MON; i++)
         {
+            // Regular evolution stones
             if (gEvolutionTable[species][i].method == EVO_ITEM
              && gEvolutionTable[species][i].param == evolutionItem)
+            {
+                targetSpecies = gEvolutionTable[species][i].targetSpecies;
+                break;
+            }
+            // Allow using the Trade Stone on species that evolve by trading
+            if (gEvolutionTable[species][i].method == EVO_TRADE
+             && evolutionItem == ITEM_TRADE_STONE)
+            {
+                targetSpecies = gEvolutionTable[species][i].targetSpecies;
+                break;
+            }
+            // Allow using the required trade item (e.g., DeepSeaTooth/Scale) on the Pokemon
+            // Also allow using the universal Trade Stone to trigger EVO_TRADE_ITEM evolutions
+            if (gEvolutionTable[species][i].method == EVO_TRADE_ITEM
+             && (gEvolutionTable[species][i].param == evolutionItem || evolutionItem == ITEM_TRADE_STONE))
             {
                 targetSpecies = gEvolutionTable[species][i].targetSpecies;
                 break;
