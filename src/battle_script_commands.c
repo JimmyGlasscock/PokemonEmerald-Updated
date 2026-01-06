@@ -3227,6 +3227,7 @@ static void Cmd_getexp(void)
     s32 sentIn;
     s32 viaExpShare = 0;
     u16 *exp = &gBattleStruct->expValue;
+    bool8 modernExpShareActive;
 
     gBattlerFainted = GetBattlerForBattleScript(gBattlescriptCurrInstr[1]);
     sentIn = gSentPokesToOpponent[(gBattlerFainted & 2) >> 1];
@@ -3255,6 +3256,10 @@ static void Cmd_getexp(void)
         {
             u16 calculatedExp;
             s32 viaSentIn;
+            s32 modernExpShareCount = 0;
+
+            // Check if modern exp share mode is enabled and active
+            bool8 modernExpShareActive = (gSaveBlock2Ptr->optionsExpShareMode == 1 && gSaveBlock2Ptr->optionsExpShareEnabled == 1);
 
             for (viaSentIn = 0, i = 0; i < PARTY_SIZE; i++)
             {
@@ -3272,11 +3277,23 @@ static void Cmd_getexp(void)
 
                 if (holdEffect == HOLD_EFFECT_EXP_SHARE)
                     viaExpShare++;
+
+                // Count eligible pokemon for modern exp share (all alive party members)
+                if (modernExpShareActive)
+                    modernExpShareCount++;
             }
 
             calculatedExp = gSpeciesInfo[gBattleMons[gBattlerFainted].species].expYield * gBattleMons[gBattlerFainted].level / 7;
 
-            if (viaExpShare) // at least one mon is getting exp via exp share
+            if (modernExpShareActive && modernExpShareCount > 0)
+            {
+                // Modern mode: split exp evenly among all party members
+                *exp = SAFE_DIV(calculatedExp, modernExpShareCount);
+                if (*exp == 0)
+                    *exp = 1;
+                gExpShareExp = *exp; // All pokemon get the same exp
+            }
+            else if (viaExpShare) // at least one mon is getting exp via exp share (classic mode)
             {
                 *exp = SAFE_DIV(calculatedExp / 2, viaSentIn);
                 if (*exp == 0)
@@ -3309,7 +3326,10 @@ static void Cmd_getexp(void)
             else
                 holdEffect = ItemId_GetHoldEffect(item);
 
-            if (holdEffect != HOLD_EFFECT_EXP_SHARE && !(gBattleStruct->sentInPokes & 1))
+            // Check if modern exp share mode is enabled and active
+            modernExpShareActive = (gSaveBlock2Ptr->optionsExpShareMode == 1 && gSaveBlock2Ptr->optionsExpShareEnabled == 1);
+
+            if (!modernExpShareActive && holdEffect != HOLD_EFFECT_EXP_SHARE && !(gBattleStruct->sentInPokes & 1))
             {
                 *(&gBattleStruct->sentInPokes) >>= 1;
                 gBattleScripting.getexpState = 5;
@@ -3333,12 +3353,21 @@ static void Cmd_getexp(void)
 
                 if (GetMonData(&gPlayerParty[gBattleStruct->expGetterMonId], MON_DATA_HP))
                 {
-                    if (gBattleStruct->sentInPokes & 1)
+                    if (modernExpShareActive)
+                    {
+                        // Modern mode: all pokemon get exp
+                        gBattleMoveDamage = gExpShareExp;
+                    }
+                    else if (gBattleStruct->sentInPokes & 1)
+                    {
                         gBattleMoveDamage = *exp;
+                    }
                     else
+                    {
                         gBattleMoveDamage = 0;
+                    }
 
-                    if (holdEffect == HOLD_EFFECT_EXP_SHARE)
+                    if (!modernExpShareActive && holdEffect == HOLD_EFFECT_EXP_SHARE)
                         gBattleMoveDamage += gExpShareExp;
                     if (holdEffect == HOLD_EFFECT_LUCKY_EGG)
                         gBattleMoveDamage = (gBattleMoveDamage * 150) / 100;

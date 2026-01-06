@@ -1127,4 +1127,40 @@ void ItemUseOutOfBattle_CannotUse(u8 taskId)
     DisplayDadsAdviceCannotUseItemMessage(taskId, gTasks[taskId].tUsingRegisteredKeyItem);
 }
 
+static void Task_WaitForButtonPressThenCloseItemMessage(u8 taskId)
+{
+    if (JOY_NEW(A_BUTTON | B_BUTTON))
+    {
+        CloseItemMessage(taskId);
+    }
+}
+
+void ItemUseOutOfBattle_ExpShare(u8 taskId)
+{
+    // Only works in modern mode
+    if (gSaveBlock2Ptr->optionsExpShareMode == 1)
+    {
+        // Toggle exp share
+        gSaveBlock2Ptr->optionsExpShareEnabled ^= 1;
+        if (gSaveBlock2Ptr->optionsExpShareEnabled)
+        {
+            if (!InBattlePyramid())
+                DisplayItemMessage(taskId, FONT_NORMAL, gText_ExpShareEnabled, Task_WaitForButtonPressThenCloseItemMessage);
+            else
+                DisplayItemMessageInBattlePyramid(taskId, gText_ExpShareEnabled, Task_CloseBattlePyramidBagMessage);
+        }
+        else
+        {
+            if (!InBattlePyramid())
+                DisplayItemMessage(taskId, FONT_NORMAL, gText_ExpShareDisabled, Task_WaitForButtonPressThenCloseItemMessage);
+            else
+                DisplayItemMessageInBattlePyramid(taskId, gText_ExpShareDisabled, Task_CloseBattlePyramidBagMessage);
+        }
+    }
+    else
+    {
+        ItemUseOutOfBattle_CannotUse(taskId);
+    }
+}
+
 #undef tUsingRegisteredKeyItem

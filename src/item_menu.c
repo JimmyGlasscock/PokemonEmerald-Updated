@@ -1926,6 +1926,12 @@ static void ItemMenu_Register(u8 taskId)
 static void ItemMenu_Give(u8 taskId)
 {
     RemoveContextWindow();
+    // Prevent giving EXP SHARE in modern mode
+    if (gSpecialVar_ItemId == ITEM_EXP_SHARE && gSaveBlock2Ptr->optionsExpShareMode == 1)
+    {
+        DisplayItemMessage(taskId, FONT_NORMAL, gText_ExpShareCannotBeHeld, HandleErrorMessage);
+        return;
+    }
     if (!IsWritingMailAllowed(gSpecialVar_ItemId))
     {
         DisplayItemMessage(taskId, FONT_NORMAL, gText_CantWriteMail, HandleErrorMessage);

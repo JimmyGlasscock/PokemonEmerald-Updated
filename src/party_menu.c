@@ -1717,12 +1717,20 @@ static void Task_PrintAndWaitForText(u8 taskId)
 {
     if (RunTextPrintersRetIsActive(WIN_MSG) != TRUE)
     {
+        // Wait for button press if keepOpen is FALSE (message should stay until button press)
         if (gTasks[taskId].tKeepOpen == FALSE)
         {
-            ClearStdWindowAndFrameToTransparent(WIN_MSG, FALSE);
-            ClearWindowTilemap(WIN_MSG);
+            if (JOY_NEW(A_BUTTON | B_BUTTON))
+            {
+                ClearStdWindowAndFrameToTransparent(WIN_MSG, FALSE);
+                ClearWindowTilemap(WIN_MSG);
+                DestroyTask(taskId);
+            }
         }
-        DestroyTask(taskId);
+        else
+        {
+            DestroyTask(taskId);
+        }
     }
 }
 
@@ -1799,6 +1807,10 @@ static void DisplaySwitchedHeldItemMessage(u16 item, u16 item2, bool8 keepOpen)
 static void GiveItemToMon(struct Pokemon *mon, u16 item)
 {
     u8 itemBytes[2];
+
+    // Prevent giving EXP SHARE in modern mode (safety check)
+    if (item == ITEM_EXP_SHARE && gSaveBlock2Ptr->optionsExpShareMode == 1)
+        return;
 
     if (ItemIsMail(item) == TRUE)
     {
@@ -3106,6 +3118,15 @@ static void CB2_GiveHoldItem(void)
     }
     else
     {
+        // Prevent giving EXP SHARE in modern mode
+        if (gSpecialVar_ItemId == ITEM_EXP_SHARE && gSaveBlock2Ptr->optionsExpShareMode == 1)
+        {
+            // Can't give exp share in modern mode - show message
+            DisplayPartyMenuMessage(gText_ExpShareCannotBeHeld, FALSE);
+            InitPartyMenu(gPartyMenu.menuType, KEEP_PARTY_LAYOUT, gPartyMenu.action, TRUE, PARTY_MSG_NONE, Task_TryCreateSelectionWindow, gPartyMenu.exitCallback);
+            return;
+        }
+
         sPartyMenuItemId = GetMonData(&gPlayerParty[gPartyMenu.slotId], MON_DATA_HELD_ITEM);
 
         // Already holding item
@@ -3116,6 +3137,13 @@ static void CB2_GiveHoldItem(void)
         // Give mail
         else if (ItemIsMail(gSpecialVar_ItemId))
         {
+            // Prevent giving EXP SHARE mail in modern mode (shouldn't happen, but safety check)
+            if (gSpecialVar_ItemId == ITEM_EXP_SHARE && gSaveBlock2Ptr->optionsExpShareMode == 1)
+            {
+                DisplayPartyMenuMessage(gText_ExpShareCannotBeHeld, FALSE);
+                InitPartyMenu(gPartyMenu.menuType, KEEP_PARTY_LAYOUT, gPartyMenu.action, TRUE, PARTY_MSG_NONE, Task_TryCreateSelectionWindow, gPartyMenu.exitCallback);
+                return;
+            }
             RemoveBagItem(gSpecialVar_ItemId, 1);
             GiveItemToMon(&gPlayerParty[gPartyMenu.slotId], gSpecialVar_ItemId);
             CB2_WriteMailToGiveMon();
@@ -3135,6 +3163,14 @@ static void Task_GiveHoldItem(u8 taskId)
     if (!gPaletteFade.active)
     {
         item = gSpecialVar_ItemId;
+        // Prevent giving EXP SHARE in modern mode
+        if (item == ITEM_EXP_SHARE && gSaveBlock2Ptr->optionsExpShareMode == 1)
+        {
+            // Can't give exp share in modern mode - show message
+            DisplayPartyMenuMessage(gText_ExpShareCannotBeHeld, FALSE);
+            gTasks[taskId].func = Task_UpdateHeldItemSpriteAndClosePartyMenu;
+            return;
+        }
         DisplayGaveHeldItemMessage(&gPlayerParty[gPartyMenu.slotId], item, FALSE, 0);
         GiveItemToMon(&gPlayerParty[gPartyMenu.slotId], item);
         RemoveBagItem(item, 1);
@@ -3165,6 +3201,14 @@ static void Task_HandleSwitchItemsYesNoInput(u8 taskId)
     switch (Menu_ProcessInputNoWrapClearOnChoose())
     {
     case 0: // Yes, switch items
+        // Prevent switching to EXP SHARE in modern mode
+        if (gSpecialVar_ItemId == ITEM_EXP_SHARE && gSaveBlock2Ptr->optionsExpShareMode == 1)
+        {
+            // Can't give exp share in modern mode
+            gTasks[taskId].func = Task_UpdateHeldItemSpriteAndClosePartyMenu;
+            break;
+        }
+
         RemoveBagItem(gSpecialVar_ItemId, 1);
 
         // No room to return held item to bag
@@ -5381,6 +5425,13 @@ static void TryGiveItemOrMailToSelectedMon(u8 taskId)
 
 static void GiveItemOrMailToSelectedMon(u8 taskId)
 {
+    // Prevent giving EXP SHARE in modern mode
+    if (gPartyMenu.bagItem == ITEM_EXP_SHARE && gSaveBlock2Ptr->optionsExpShareMode == 1)
+    {
+        DisplayPartyMenuMessage(gText_ExpShareCannotBeHeld, FALSE);
+        InitPartyMenu(gPartyMenu.menuType, KEEP_PARTY_LAYOUT, gPartyMenu.action, TRUE, PARTY_MSG_NONE, Task_TryCreateSelectionWindow, gPartyMenu.exitCallback);
+        return;
+    }
     if (ItemIsMail(gPartyMenu.bagItem))
     {
         RemoveItemToGiveFromBag(gPartyMenu.bagItem);
@@ -5400,6 +5451,13 @@ static void GiveItemToSelectedMon(u8 taskId)
     if (!gPaletteFade.active)
     {
         item = gPartyMenu.bagItem;
+        // Prevent giving EXP SHARE in modern mode
+        if (item == ITEM_EXP_SHARE && gSaveBlock2Ptr->optionsExpShareMode == 1)
+        {
+            DisplayPartyMenuMessage(gText_ExpShareCannotBeHeld, FALSE);
+            gTasks[taskId].func = Task_UpdateHeldItemSpriteAndClosePartyMenu;
+            return;
+        }
         DisplayGaveHeldItemMessage(&gPlayerParty[gPartyMenu.slotId], item, FALSE, 1);
         GiveItemToMon(&gPlayerParty[gPartyMenu.slotId], item);
         RemoveItemToGiveFromBag(item);
@@ -5422,6 +5480,13 @@ static void CB2_WriteMailToGiveMonFromBag(void)
 {
     u8 mail;
 
+    // Prevent giving EXP SHARE in modern mode (safety check - GiveItemToMon will also check)
+    if (gPartyMenu.bagItem == ITEM_EXP_SHARE && gSaveBlock2Ptr->optionsExpShareMode == 1)
+    {
+        DisplayPartyMenuMessage(gText_ExpShareCannotBeHeld, FALSE);
+        InitPartyMenu(gPartyMenu.menuType, KEEP_PARTY_LAYOUT, gPartyMenu.action, TRUE, PARTY_MSG_NONE, Task_TryCreateSelectionWindow, gPartyMenu.exitCallback);
+        return;
+    }
     GiveItemToMon(&gPlayerParty[gPartyMenu.slotId], gPartyMenu.bagItem);
     mail = GetMonData(&gPlayerParty[gPartyMenu.slotId], MON_DATA_MAIL);
     DoEasyChatScreen(
@@ -5481,6 +5546,13 @@ static void Task_HandleSwitchItemsFromBagYesNoInput(u8 taskId)
     {
     case 0: // Yes, switch items
         item = gPartyMenu.bagItem;
+        // Prevent switching to EXP SHARE in modern mode
+        if (item == ITEM_EXP_SHARE && gSaveBlock2Ptr->optionsExpShareMode == 1)
+        {
+            // Can't give exp share in modern mode
+            gTasks[taskId].func = Task_UpdateHeldItemSpriteAndClosePartyMenu;
+            break;
+        }
         RemoveItemToGiveFromBag(item);
         if (AddBagItem(sPartyMenuItemId, 1) == FALSE)
         {
