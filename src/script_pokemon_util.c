@@ -23,6 +23,8 @@
 #include "tv.h"
 #include "constants/items.h"
 #include "constants/battle_frontier.h"
+#include "constants/species.h"
+#include "constants/flags.h"
 
 static void CB2_ReturnFromChooseHalfParty(void);
 static void CB2_ReturnFromChooseBattleFrontierParty(void);
@@ -225,4 +227,38 @@ void ReducePlayerPartyToSelectedMons(void)
         gPlayerParty[i] = party[i];
 
     CalculatePlayerPartyCount();
+}
+
+// Gives the player the other two starter Pokemon at level 10
+// Returns: TRUE if successful, FALSE if already given or invalid starter
+bool8 GiveOtherStarters(void)
+{
+    u8 chosenStarterId;
+    u16 starterSpecies[3] = {SPECIES_TREECKO, SPECIES_TORCHIC, SPECIES_MUDKIP};
+    u8 i;
+    
+    // Check if already given
+    if (FlagGet(FLAG_RECEIVED_OTHER_STARTERS))
+        return FALSE;
+    
+    // Get the chosen starter from VAR_STARTER_MON (0=Treecko, 1=Torchic, 2=Mudkip)
+    chosenStarterId = VarGet(VAR_STARTER_MON);
+    
+    // Validate starter ID (should be 0, 1, or 2)
+    if (chosenStarterId > 2)
+        return FALSE; // Invalid starter ID
+    
+    // Give the other two starters
+    for (i = 0; i < 3; i++)
+    {
+        if (i != chosenStarterId)
+        {
+            ScriptGiveMon(starterSpecies[i], 10, ITEM_NONE, 0, 0, 0);
+            // If party is full, Pokemon will be sent to PC automatically
+        }
+    }
+    
+    // Set flag so this can only be done once
+    FlagSet(FLAG_RECEIVED_OTHER_STARTERS);
+    return TRUE;
 }
