@@ -381,6 +381,11 @@ bool8 RemoveBagItem(u16 itemId, u16 count)
         }
 
         var = GetItemListPosition(pocket);
+
+        // If this is the TM/HM pocket, do not remove items (TMs/HMs are infinitely reusable)
+        if (pocket == TMHM_POCKET)
+            return TRUE;
+
         if (itemPocket->capacity > var
          && itemPocket->itemSlots[var].itemId == itemId)
         {
