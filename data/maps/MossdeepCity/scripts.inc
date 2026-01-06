@@ -60,8 +60,41 @@ MossdeepCity_EventScript_Woman::
 	end
 
 MossdeepCity_EventScript_WhiteRock::
-	msgbox MossdeepCity_Text_ItsAWhiteRock, MSGBOX_SIGN
+	lock
+	faceplayer
+	goto_if_set FLAG_BATTLED_JIRACHI, MossdeepCity_EventScript_WhiteRock_AlreadyBattled
+	goto_if_unset FLAG_SYS_GAME_CLEAR, MossdeepCity_EventScript_WhiteRock_JustRock
+	msgbox MossdeepCity_Text_WhiteRock_MakeWish, MSGBOX_YESNO
+	goto_if_eq VAR_RESULT, NO, MossdeepCity_EventScript_WhiteRock_DeclinedWish
+	msgbox MossdeepCity_Text_WhiteRock_WishCameTrue, MSGBOX_DEFAULT
+	setflag FLAG_BATTLED_JIRACHI
+	setwildbattle SPECIES_JIRACHI, 30, ITEM_NONE
+	setflag FLAG_SYS_CTRL_OBJ_DELETE
+	dowildbattle
+	clearflag FLAG_SYS_CTRL_OBJ_DELETE
+	release
 	end
+
+MossdeepCity_EventScript_WhiteRock_AlreadyBattled::
+	msgbox MossdeepCity_Text_ItsAWhiteRock, MSGBOX_SIGN
+	release
+	end
+
+MossdeepCity_EventScript_WhiteRock_JustRock::
+	msgbox MossdeepCity_Text_ItsAWhiteRock, MSGBOX_SIGN
+	release
+	end
+
+MossdeepCity_EventScript_WhiteRock_DeclinedWish::
+	release
+	end
+
+MossdeepCity_Text_WhiteRock_MakeWish:
+	.string "It's a white rock.\n"
+	.string "Will you make a wish?$"
+
+MossdeepCity_Text_WhiteRock_WishCameTrue:
+	.string "Your wish came true!$"
 
 MossdeepCity_EventScript_GymSign::
 	msgbox MossdeepCity_Text_GymSign, MSGBOX_SIGN
