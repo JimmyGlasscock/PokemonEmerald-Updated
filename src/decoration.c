@@ -1601,12 +1601,16 @@ static bool8 CanPlaceDecoration(u8 taskId, const struct Decoration *decoration)
             behaviorAt = MapGridGetMetatileBehaviorAt(curX, curY);
             if (decoration->shape == DECORSHAPE_1x2)
             {
-                if (!MetatileBehavior_HoldsLargeDecoration(behaviorAt))
+                // Large dolls can be placed on large decoration spots (mats) or normal floor tiles
+                if (!MetatileBehavior_HoldsLargeDecoration(behaviorAt) && !MetatileBehavior_IsNormal(behaviorAt))
                     return FALSE;
             }
-            else if (!MetatileBehavior_HoldsSmallDecoration(behaviorAt))
+            else
             {
-                if (!MetatileBehavior_HoldsLargeDecoration(behaviorAt))
+                // Small dolls can be placed on small/large decoration spots (mats) or normal floor tiles
+                if (!MetatileBehavior_HoldsSmallDecoration(behaviorAt)
+                 && !MetatileBehavior_HoldsLargeDecoration(behaviorAt)
+                 && !MetatileBehavior_IsNormal(behaviorAt))
                     return FALSE;
             }
 
