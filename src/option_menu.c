@@ -28,8 +28,9 @@
 #define tSound data[4]
 #define tButtonMode data[5]
 #define tWindowFrameType data[6]
-#define tExpShareMode data[7]
-#define tScrollOffset data[8]
+#define tIncomingCalls data[7]
+#define tExpShareMode data[8]
+#define tScrollOffset data[9]
 
 enum
 {
@@ -39,6 +40,7 @@ enum
     MENUITEM_SOUND,
     MENUITEM_BUTTONMODE,
     MENUITEM_FRAMETYPE,
+    MENUITEM_INCOMINGCALLS,
     MENUITEM_EXPSHARE,
     MENUITEM_CANCEL,
     MENUITEM_COUNT,
@@ -56,6 +58,7 @@ enum
 #define YPOS_SOUND        (MENUITEM_SOUND * 16)
 #define YPOS_BUTTONMODE   (MENUITEM_BUTTONMODE * 16)
 #define YPOS_FRAMETYPE    (MENUITEM_FRAMETYPE * 16)
+#define YPOS_INCOMINGCALLS (MENUITEM_INCOMINGCALLS * 16)
 #define YPOS_EXPSHARE     (MENUITEM_EXPSHARE * 16)
 
 #define MAX_VISIBLE_ITEMS 7
@@ -77,6 +80,8 @@ static u8 FrameType_ProcessInput(u8 selection);
 static void FrameType_DrawChoices(u8 selection);
 static u8 ButtonMode_ProcessInput(u8 selection);
 static void ButtonMode_DrawChoices(u8 selection);
+static u8 IncomingCalls_ProcessInput(u8 selection);
+static void IncomingCalls_DrawChoices(u8 selection);
 static u8 ExpShare_ProcessInput(u8 selection);
 static void ExpShare_DrawChoices(u8 selection);
 static void MoveExpShareFromPokemonToBag(void);
@@ -100,6 +105,7 @@ static const u8 *const sOptionMenuItemsNames[MENUITEM_COUNT] =
     [MENUITEM_SOUND]       = gText_Sound,
     [MENUITEM_BUTTONMODE]  = gText_ButtonMode,
     [MENUITEM_FRAMETYPE]   = gText_Frame,
+    [MENUITEM_INCOMINGCALLS] = gText_MatchCalls,
     [MENUITEM_EXPSHARE]    = gText_ExpShare,
     [MENUITEM_CANCEL]      = gText_OptionMenuCancel,
 };
@@ -251,6 +257,7 @@ void CB2_InitOptionMenu(void)
         gTasks[taskId].tSound = gSaveBlock2Ptr->optionsSound;
         gTasks[taskId].tButtonMode = gSaveBlock2Ptr->optionsButtonMode;
         gTasks[taskId].tWindowFrameType = gSaveBlock2Ptr->optionsWindowFrameType;
+        gTasks[taskId].tIncomingCalls = gSaveBlock2Ptr->optionsIncomingCalls ^ 1; // Invert: 0=ON, 1=OFF in UI, but 1=ON, 0=OFF in save
         gTasks[taskId].tExpShareMode = gSaveBlock2Ptr->optionsExpShareMode;
 
         TextSpeed_DrawChoices(gTasks[taskId].tTextSpeed);
@@ -259,6 +266,7 @@ void CB2_InitOptionMenu(void)
         Sound_DrawChoices(gTasks[taskId].tSound);
         ButtonMode_DrawChoices(gTasks[taskId].tButtonMode);
         FrameType_DrawChoices(gTasks[taskId].tWindowFrameType);
+        IncomingCalls_DrawChoices(gTasks[taskId].tIncomingCalls);
         ExpShare_DrawChoices(gTasks[taskId].tExpShareMode);
         HighlightOptionMenuItem(gTasks[taskId].tMenuSelection);
 
@@ -309,6 +317,7 @@ static void Task_OptionMenuProcessInput(u8 taskId)
                 Sound_DrawChoices(gTasks[taskId].tSound);
                 ButtonMode_DrawChoices(gTasks[taskId].tButtonMode);
                 FrameType_DrawChoices(gTasks[taskId].tWindowFrameType);
+                IncomingCalls_DrawChoices(gTasks[taskId].tIncomingCalls);
                 ExpShare_DrawChoices(gTasks[taskId].tExpShareMode);
                 CopyWindowToVram(WIN_OPTIONS, COPYWIN_GFX);
             }
@@ -329,6 +338,7 @@ static void Task_OptionMenuProcessInput(u8 taskId)
                 Sound_DrawChoices(gTasks[taskId].tSound);
                 ButtonMode_DrawChoices(gTasks[taskId].tButtonMode);
                 FrameType_DrawChoices(gTasks[taskId].tWindowFrameType);
+                IncomingCalls_DrawChoices(gTasks[taskId].tIncomingCalls);
                 ExpShare_DrawChoices(gTasks[taskId].tExpShareMode);
                 CopyWindowToVram(WIN_OPTIONS, COPYWIN_GFX);
             }
@@ -353,6 +363,7 @@ static void Task_OptionMenuProcessInput(u8 taskId)
                 Sound_DrawChoices(gTasks[taskId].tSound);
                 ButtonMode_DrawChoices(gTasks[taskId].tButtonMode);
                 FrameType_DrawChoices(gTasks[taskId].tWindowFrameType);
+                IncomingCalls_DrawChoices(gTasks[taskId].tIncomingCalls);
                 ExpShare_DrawChoices(gTasks[taskId].tExpShareMode);
                 CopyWindowToVram(WIN_OPTIONS, COPYWIN_GFX);
             }
@@ -371,6 +382,7 @@ static void Task_OptionMenuProcessInput(u8 taskId)
             Sound_DrawChoices(gTasks[taskId].tSound);
             ButtonMode_DrawChoices(gTasks[taskId].tButtonMode);
             FrameType_DrawChoices(gTasks[taskId].tWindowFrameType);
+            IncomingCalls_DrawChoices(gTasks[taskId].tIncomingCalls);
             ExpShare_DrawChoices(gTasks[taskId].tExpShareMode);
             CopyWindowToVram(WIN_OPTIONS, COPYWIN_GFX);
         }
@@ -424,6 +436,13 @@ static void Task_OptionMenuProcessInput(u8 taskId)
             if (previousOption != gTasks[taskId].tWindowFrameType)
                 FrameType_DrawChoices(gTasks[taskId].tWindowFrameType);
             break;
+        case MENUITEM_INCOMINGCALLS:
+            previousOption = gTasks[taskId].tIncomingCalls;
+            gTasks[taskId].tIncomingCalls = IncomingCalls_ProcessInput(gTasks[taskId].tIncomingCalls);
+
+            if (previousOption != gTasks[taskId].tIncomingCalls)
+                IncomingCalls_DrawChoices(gTasks[taskId].tIncomingCalls);
+            break;
         case MENUITEM_EXPSHARE:
             previousOption = gTasks[taskId].tExpShareMode;
             gTasks[taskId].tExpShareMode = ExpShare_ProcessInput(gTasks[taskId].tExpShareMode);
@@ -459,6 +478,7 @@ static void Task_OptionMenuSave(u8 taskId)
     gSaveBlock2Ptr->optionsSound = gTasks[taskId].tSound;
     gSaveBlock2Ptr->optionsButtonMode = gTasks[taskId].tButtonMode;
     gSaveBlock2Ptr->optionsWindowFrameType = gTasks[taskId].tWindowFrameType;
+    gSaveBlock2Ptr->optionsIncomingCalls = gTasks[taskId].tIncomingCalls ^ 1; // Invert: 0=ON, 1=OFF in UI, but 1=ON, 0=OFF in save
     gSaveBlock2Ptr->optionsExpShareMode = gTasks[taskId].tExpShareMode;
 
     BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
@@ -753,6 +773,35 @@ static void ButtonMode_DrawChoices(u8 selection)
     DrawOptionMenuChoice(gText_ButtonTypeLR, xLR, yPos, styles[1]);
 
     DrawOptionMenuChoice(gText_ButtonTypeLEqualsA, GetStringRightAlignXOffset(FONT_NORMAL, gText_ButtonTypeLEqualsA, 198), yPos, styles[2]);
+}
+
+static u8 IncomingCalls_ProcessInput(u8 selection)
+{
+    if (JOY_NEW(DPAD_LEFT | DPAD_RIGHT))
+    {
+        selection ^= 1;
+        sArrowPressed = TRUE;
+    }
+
+    return selection;
+}
+
+static void IncomingCalls_DrawChoices(u8 selection)
+{
+    u8 styles[2];
+    u8 yPos;
+
+    // Only draw if visible
+    if (MENUITEM_INCOMINGCALLS < sCurrentScrollOffset || MENUITEM_INCOMINGCALLS >= sCurrentScrollOffset + MAX_VISIBLE_ITEMS)
+        return;
+
+    yPos = (MENUITEM_INCOMINGCALLS - sCurrentScrollOffset) * 16;
+    styles[0] = 0;
+    styles[1] = 0;
+    styles[selection] = 1;
+
+    DrawOptionMenuChoice(gText_MatchCallsOn, 104, yPos, styles[0]);
+    DrawOptionMenuChoice(gText_MatchCallsOff, GetStringRightAlignXOffset(FONT_NORMAL, gText_MatchCallsOff, 198), yPos, styles[1]);
 }
 
 static u8 ExpShare_ProcessInput(u8 selection)

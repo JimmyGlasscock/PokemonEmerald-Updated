@@ -1155,6 +1155,7 @@ static u32 GetActiveMatchCallTrainerId(u32 activeMatchCallId)
 bool32 TryStartMatchCall(void)
 {
     if (FlagGet(FLAG_HAS_MATCH_CALL)
+        && gSaveBlock2Ptr->optionsIncomingCalls
         && UpdateMatchCallStepCounter()
         && UpdateMatchCallMinutesCounter()
         && CheckMatchCallChance()
@@ -1170,6 +1171,9 @@ bool32 TryStartMatchCall(void)
 
 void StartMatchCallFromScript(const u8 *message)
 {
+    if (!gSaveBlock2Ptr->optionsIncomingCalls)
+        return;
+    
     sMatchCallState.triggeredFromScript = TRUE;
     StartMatchCall();
 }

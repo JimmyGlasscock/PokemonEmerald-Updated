@@ -81,6 +81,8 @@ bool8 ShowPokenavFieldMessage(const u8 *str)
 {
     if (sFieldMessageBoxMode != FIELD_MESSAGE_BOX_HIDDEN)
         return FALSE;
+    if (!gSaveBlock2Ptr->optionsIncomingCalls)
+        return FALSE;
     StringExpandPlaceholders(gStringVar4, str);
     CreateTask(Task_HidePokenavMessageWhenDone, 0);
     StartMatchCallFromScript(str);
