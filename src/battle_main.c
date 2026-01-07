@@ -1958,6 +1958,13 @@ static void SpriteCB_UnusedBattleInit_Main(struct Sprite *sprite)
     }
 }
 
+// Extern declarations for rematch party data
+extern const struct TrainerMonItemCustomMoves sParty_SidneyRematch[];
+extern const struct TrainerMonItemCustomMoves sParty_PhoebeRematch[];
+extern const struct TrainerMonItemCustomMoves sParty_GlaciaRematch[];
+extern const struct TrainerMonItemCustomMoves sParty_DrakeRematch[];
+extern const struct TrainerMonItemCustomMoves sParty_WallaceRematch[];
+
 static u8 CreateNPCTrainerParty(struct Pokemon *party, u16 trainerNum, bool8 firstTrainer)
 {
     u32 nameHash = 0;
@@ -1965,6 +1972,7 @@ static u8 CreateNPCTrainerParty(struct Pokemon *party, u16 trainerNum, bool8 fir
     u8 fixedIV;
     s32 i, j;
     u8 monsCount;
+    u8 partySize;
 
     if (trainerNum == TRAINER_SECRET_BASE)
         return 0;
@@ -1976,16 +1984,32 @@ static u8 CreateNPCTrainerParty(struct Pokemon *party, u16 trainerNum, bool8 fir
         if (firstTrainer == TRUE)
             ZeroEnemyPartyMons();
 
+        // Determine party size (use rematch size if game is cleared and trainer is Elite Four)
+        partySize = gTrainers[trainerNum].partySize;
+        if (FlagGet(FLAG_SYS_GAME_CLEAR))
+        {
+            if (trainerNum == TRAINER_SIDNEY)
+                partySize = 5; // sParty_SidneyRematch
+            else if (trainerNum == TRAINER_PHOEBE)
+                partySize = 5; // sParty_PhoebeRematch
+            else if (trainerNum == TRAINER_GLACIA)
+                partySize = 5; // sParty_GlaciaRematch
+            else if (trainerNum == TRAINER_DRAKE)
+                partySize = 5; // sParty_DrakeRematch
+            else if (trainerNum == TRAINER_WALLACE)
+                partySize = 6; // sParty_WallaceRematch
+        }
+
         if (gBattleTypeFlags & BATTLE_TYPE_TWO_OPPONENTS)
         {
-            if (gTrainers[trainerNum].partySize > PARTY_SIZE / 2)
+            if (partySize > PARTY_SIZE / 2)
                 monsCount = PARTY_SIZE / 2;
             else
-                monsCount = gTrainers[trainerNum].partySize;
+                monsCount = partySize;
         }
         else
         {
-            monsCount = gTrainers[trainerNum].partySize;
+            monsCount = partySize;
         }
 
         for (i = 0; i < monsCount; i++)
@@ -2051,6 +2075,21 @@ static u8 CreateNPCTrainerParty(struct Pokemon *party, u16 trainerNum, bool8 fir
             {
                 const struct TrainerMonItemCustomMoves *partyData = gTrainers[trainerNum].party.ItemCustomMoves;
 
+                // Check if game is cleared and use rematch teams for Elite Four
+                if (FlagGet(FLAG_SYS_GAME_CLEAR))
+                {
+                    if (trainerNum == TRAINER_SIDNEY)
+                        partyData = sParty_SidneyRematch;
+                    else if (trainerNum == TRAINER_PHOEBE)
+                        partyData = sParty_PhoebeRematch;
+                    else if (trainerNum == TRAINER_GLACIA)
+                        partyData = sParty_GlaciaRematch;
+                    else if (trainerNum == TRAINER_DRAKE)
+                        partyData = sParty_DrakeRematch;
+                    else if (trainerNum == TRAINER_WALLACE)
+                        partyData = sParty_WallaceRematch;
+                }
+
                 for (j = 0; gSpeciesNames[partyData[i].species][j] != EOS; j++)
                     nameHash += gSpeciesNames[partyData[i].species][j];
 
@@ -2071,6 +2110,21 @@ static u8 CreateNPCTrainerParty(struct Pokemon *party, u16 trainerNum, bool8 fir
         }
 
         gBattleTypeFlags |= gTrainers[trainerNum].doubleBattle;
+    }
+
+    // Return rematch party size if game is cleared and trainer is Elite Four
+    if (FlagGet(FLAG_SYS_GAME_CLEAR))
+    {
+        if (trainerNum == TRAINER_SIDNEY)
+            return 5; // sParty_SidneyRematch
+        else if (trainerNum == TRAINER_PHOEBE)
+            return 5; // sParty_PhoebeRematch
+        else if (trainerNum == TRAINER_GLACIA)
+            return 5; // sParty_GlaciaRematch
+        else if (trainerNum == TRAINER_DRAKE)
+            return 5; // sParty_DrakeRematch
+        else if (trainerNum == TRAINER_WALLACE)
+            return 6; // sParty_WallaceRematch
     }
 
     return gTrainers[trainerNum].partySize;
