@@ -511,7 +511,7 @@ struct SaveBlock2
              u16 optionsIncomingCalls:1; // whether match calls are enabled
              u16 optionsExpShareMode:1; // EXP_SHARE_MODE_[CLASSIC/MODERN]
              u16 optionsExpShareEnabled:1; // whether modern exp share is enabled (only used in modern mode)
-             //u16 padding1:1;
+             u16 optionsVersion:2; // VERSION_[EMERALD/RUBY/SAPPHIRE]
              //u16 padding2;
     /*0x18*/ struct Pokedex pokedex;
     /*0x90*/ u8 filler_90[0x8];

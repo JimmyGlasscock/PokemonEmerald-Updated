@@ -252,6 +252,7 @@ static void FindMapsWithMon(u16 species)
     roamer = &gSaveBlock1Ptr->roamer;
     if (species != roamer->species)
     {
+        const struct WildPokemonHeader *wildHeaders;
         sPokedexAreaScreen->numOverworldAreas = 0;
         sPokedexAreaScreen->numSpecialAreas = 0;
 
@@ -285,18 +286,19 @@ static void FindMapsWithMon(u16 species)
         }
 
         // Add regular species to the area map
-        for (i = 0; gWildMonHeaders[i].mapGroup != MAP_GROUP(UNDEFINED); i++)
+        wildHeaders = GetWildMonHeaders();
+        for (i = 0; wildHeaders[i].mapGroup != MAP_GROUP(UNDEFINED); i++)
         {
-            if (MapHasSpecies(&gWildMonHeaders[i], species))
+            if (MapHasSpecies(&wildHeaders[i], species))
             {
-                switch (gWildMonHeaders[i].mapGroup)
+                switch (wildHeaders[i].mapGroup)
                 {
                 case MAP_GROUP_TOWNS_AND_ROUTES:
-                    SetAreaHasMon(gWildMonHeaders[i].mapGroup, gWildMonHeaders[i].mapNum);
+                    SetAreaHasMon(wildHeaders[i].mapGroup, wildHeaders[i].mapNum);
                     break;
                 case MAP_GROUP_DUNGEONS:
                 case MAP_GROUP_SPECIAL_AREA:
-                    SetSpecialMapHasMon(gWildMonHeaders[i].mapGroup, gWildMonHeaders[i].mapNum);
+                    SetSpecialMapHasMon(wildHeaders[i].mapGroup, wildHeaders[i].mapNum);
                     break;
                 }
             }

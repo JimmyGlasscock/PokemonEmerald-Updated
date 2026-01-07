@@ -20,6 +20,7 @@
 #include "pokemon.h"
 #include "pokemon_storage_system.h"
 #include "load_save.h"
+#include "blit.h"
 
 #define tMenuSelection data[0]
 #define tTextSpeed data[1]
@@ -28,9 +29,10 @@
 #define tSound data[4]
 #define tButtonMode data[5]
 #define tWindowFrameType data[6]
-#define tIncomingCalls data[7]
-#define tExpShareMode data[8]
-#define tScrollOffset data[9]
+#define tVersion data[7]
+#define tIncomingCalls data[8]
+#define tExpShareMode data[9]
+#define tScrollOffset data[10]
 
 enum
 {
@@ -40,6 +42,7 @@ enum
     MENUITEM_SOUND,
     MENUITEM_BUTTONMODE,
     MENUITEM_FRAMETYPE,
+    MENUITEM_VERSION,
     MENUITEM_INCOMINGCALLS,
     MENUITEM_EXPSHARE,
     MENUITEM_CANCEL,
@@ -58,6 +61,7 @@ enum
 #define YPOS_SOUND        (MENUITEM_SOUND * 16)
 #define YPOS_BUTTONMODE   (MENUITEM_BUTTONMODE * 16)
 #define YPOS_FRAMETYPE    (MENUITEM_FRAMETYPE * 16)
+#define YPOS_VERSION      (MENUITEM_VERSION * 16)
 #define YPOS_INCOMINGCALLS (MENUITEM_INCOMINGCALLS * 16)
 #define YPOS_EXPSHARE     (MENUITEM_EXPSHARE * 16)
 
@@ -80,6 +84,8 @@ static u8 FrameType_ProcessInput(u8 selection);
 static void FrameType_DrawChoices(u8 selection);
 static u8 ButtonMode_ProcessInput(u8 selection);
 static void ButtonMode_DrawChoices(u8 selection);
+static u8 Version_ProcessInput(u8 selection);
+static void Version_DrawChoices(u8 selection);
 static u8 IncomingCalls_ProcessInput(u8 selection);
 static void IncomingCalls_DrawChoices(u8 selection);
 static u8 ExpShare_ProcessInput(u8 selection);
@@ -105,6 +111,7 @@ static const u8 *const sOptionMenuItemsNames[MENUITEM_COUNT] =
     [MENUITEM_SOUND]       = gText_Sound,
     [MENUITEM_BUTTONMODE]  = gText_ButtonMode,
     [MENUITEM_FRAMETYPE]   = gText_Frame,
+    [MENUITEM_VERSION]     = gText_Version,
     [MENUITEM_INCOMINGCALLS] = gText_MatchCalls,
     [MENUITEM_EXPSHARE]    = gText_ExpShare,
     [MENUITEM_CANCEL]      = gText_OptionMenuCancel,
@@ -257,8 +264,11 @@ void CB2_InitOptionMenu(void)
         gTasks[taskId].tSound = gSaveBlock2Ptr->optionsSound;
         gTasks[taskId].tButtonMode = gSaveBlock2Ptr->optionsButtonMode;
         gTasks[taskId].tWindowFrameType = gSaveBlock2Ptr->optionsWindowFrameType;
+        gTasks[taskId].tVersion = gSaveBlock2Ptr->optionsVersion;
         gTasks[taskId].tIncomingCalls = gSaveBlock2Ptr->optionsIncomingCalls ^ 1; // Invert: 0=ON, 1=OFF in UI, but 1=ON, 0=OFF in save
         gTasks[taskId].tExpShareMode = gSaveBlock2Ptr->optionsExpShareMode;
+        gTasks[taskId].tScrollOffset = 0;
+        sCurrentScrollOffset = 0;
 
         TextSpeed_DrawChoices(gTasks[taskId].tTextSpeed);
         BattleScene_DrawChoices(gTasks[taskId].tBattleSceneOff);
@@ -266,6 +276,7 @@ void CB2_InitOptionMenu(void)
         Sound_DrawChoices(gTasks[taskId].tSound);
         ButtonMode_DrawChoices(gTasks[taskId].tButtonMode);
         FrameType_DrawChoices(gTasks[taskId].tWindowFrameType);
+        Version_DrawChoices(gTasks[taskId].tVersion);
         IncomingCalls_DrawChoices(gTasks[taskId].tIncomingCalls);
         ExpShare_DrawChoices(gTasks[taskId].tExpShareMode);
         HighlightOptionMenuItem(gTasks[taskId].tMenuSelection);
@@ -317,6 +328,7 @@ static void Task_OptionMenuProcessInput(u8 taskId)
                 Sound_DrawChoices(gTasks[taskId].tSound);
                 ButtonMode_DrawChoices(gTasks[taskId].tButtonMode);
                 FrameType_DrawChoices(gTasks[taskId].tWindowFrameType);
+                Version_DrawChoices(gTasks[taskId].tVersion);
                 IncomingCalls_DrawChoices(gTasks[taskId].tIncomingCalls);
                 ExpShare_DrawChoices(gTasks[taskId].tExpShareMode);
                 CopyWindowToVram(WIN_OPTIONS, COPYWIN_GFX);
@@ -338,6 +350,7 @@ static void Task_OptionMenuProcessInput(u8 taskId)
                 Sound_DrawChoices(gTasks[taskId].tSound);
                 ButtonMode_DrawChoices(gTasks[taskId].tButtonMode);
                 FrameType_DrawChoices(gTasks[taskId].tWindowFrameType);
+                Version_DrawChoices(gTasks[taskId].tVersion);
                 IncomingCalls_DrawChoices(gTasks[taskId].tIncomingCalls);
                 ExpShare_DrawChoices(gTasks[taskId].tExpShareMode);
                 CopyWindowToVram(WIN_OPTIONS, COPYWIN_GFX);
@@ -363,6 +376,7 @@ static void Task_OptionMenuProcessInput(u8 taskId)
                 Sound_DrawChoices(gTasks[taskId].tSound);
                 ButtonMode_DrawChoices(gTasks[taskId].tButtonMode);
                 FrameType_DrawChoices(gTasks[taskId].tWindowFrameType);
+                Version_DrawChoices(gTasks[taskId].tVersion);
                 IncomingCalls_DrawChoices(gTasks[taskId].tIncomingCalls);
                 ExpShare_DrawChoices(gTasks[taskId].tExpShareMode);
                 CopyWindowToVram(WIN_OPTIONS, COPYWIN_GFX);
@@ -382,6 +396,7 @@ static void Task_OptionMenuProcessInput(u8 taskId)
             Sound_DrawChoices(gTasks[taskId].tSound);
             ButtonMode_DrawChoices(gTasks[taskId].tButtonMode);
             FrameType_DrawChoices(gTasks[taskId].tWindowFrameType);
+            Version_DrawChoices(gTasks[taskId].tVersion);
             IncomingCalls_DrawChoices(gTasks[taskId].tIncomingCalls);
             ExpShare_DrawChoices(gTasks[taskId].tExpShareMode);
             CopyWindowToVram(WIN_OPTIONS, COPYWIN_GFX);
@@ -436,6 +451,13 @@ static void Task_OptionMenuProcessInput(u8 taskId)
             if (previousOption != gTasks[taskId].tWindowFrameType)
                 FrameType_DrawChoices(gTasks[taskId].tWindowFrameType);
             break;
+        case MENUITEM_VERSION:
+            previousOption = gTasks[taskId].tVersion;
+            gTasks[taskId].tVersion = Version_ProcessInput(gTasks[taskId].tVersion);
+
+            if (previousOption != gTasks[taskId].tVersion)
+                Version_DrawChoices(gTasks[taskId].tVersion);
+            break;
         case MENUITEM_INCOMINGCALLS:
             previousOption = gTasks[taskId].tIncomingCalls;
             gTasks[taskId].tIncomingCalls = IncomingCalls_ProcessInput(gTasks[taskId].tIncomingCalls);
@@ -478,6 +500,7 @@ static void Task_OptionMenuSave(u8 taskId)
     gSaveBlock2Ptr->optionsSound = gTasks[taskId].tSound;
     gSaveBlock2Ptr->optionsButtonMode = gTasks[taskId].tButtonMode;
     gSaveBlock2Ptr->optionsWindowFrameType = gTasks[taskId].tWindowFrameType;
+    gSaveBlock2Ptr->optionsVersion = gTasks[taskId].tVersion;
     gSaveBlock2Ptr->optionsIncomingCalls = gTasks[taskId].tIncomingCalls ^ 1; // Invert: 0=ON, 1=OFF in UI, but 1=ON, 0=OFF in save
     gSaveBlock2Ptr->optionsExpShareMode = gTasks[taskId].tExpShareMode;
 
@@ -721,6 +744,73 @@ static void FrameType_DrawChoices(u8 selection)
 
     DrawOptionMenuChoice(gText_FrameType, 104, yPos, 0);
     DrawOptionMenuChoice(text, 128, yPos, 1);
+}
+
+static u8 Version_ProcessInput(u8 selection)
+{
+    if (JOY_NEW(DPAD_RIGHT))
+    {
+        if (selection <= 1)
+            selection++;
+        else
+            selection = 0;
+
+        sArrowPressed = TRUE;
+    }
+    if (JOY_NEW(DPAD_LEFT))
+    {
+        if (selection != 0)
+            selection--;
+        else
+            selection = 2;
+
+        sArrowPressed = TRUE;
+    }
+    return selection;
+}
+
+static void Version_DrawChoices(u8 selection)
+{
+    const u8 *versionText;
+    u8 yPos;
+    struct Window *window;
+    struct Bitmap pixels_data;
+
+    // Only draw if visible
+    if (MENUITEM_VERSION < sCurrentScrollOffset || MENUITEM_VERSION >= sCurrentScrollOffset + MAX_VISIBLE_ITEMS)
+        return;
+
+    yPos = (MENUITEM_VERSION - sCurrentScrollOffset) * 16;
+
+    // Clear the area first using bitmap fill with background color (1 = white/light background)
+    window = &gWindows[WIN_OPTIONS];
+    pixels_data.pixels = window->tileData;
+    pixels_data.width = window->window.width << 3;
+    pixels_data.height = window->window.height << 3;
+    
+    // Clear a wide area (about 120 pixels wide, 16 pixels tall) to cover any leftover text
+    // Use color 1 which matches the window background (PIXEL_FILL(1))
+    FillBitmapRect4Bit(&pixels_data, 104, yPos + 1, 120, 16, 1);
+
+    // Get the text for the selected version
+    switch (selection)
+    {
+    case OPTIONS_VERSION_EMERALD:
+        versionText = gText_VersionEmerald;
+        break;
+    case OPTIONS_VERSION_RUBY:
+        versionText = gText_VersionRuby;
+        break;
+    case OPTIONS_VERSION_SAPPHIRE:
+        versionText = gText_VersionSapphire;
+        break;
+    default:
+        versionText = gText_VersionEmerald;
+        break;
+    }
+
+    // Draw the selected version name (left-aligned at 104, same as FrameType label position)
+    DrawOptionMenuChoice(versionText, 104, yPos, 1);
 }
 
 static u8 ButtonMode_ProcessInput(u8 selection)

@@ -97,6 +97,7 @@ static void SetDefaultOptions(void)
     gSaveBlock2Ptr->optionsBattleSceneOff = FALSE;
     gSaveBlock2Ptr->regionMapZoom = FALSE;
     gSaveBlock2Ptr->optionsIncomingCalls = 1; // ON by default (1 = ON, 0 = OFF in save)
+    gSaveBlock2Ptr->optionsVersion = OPTIONS_VERSION_EMERALD; // Default to Emerald
 }
 
 static void ClearPokedexFlags(void)
