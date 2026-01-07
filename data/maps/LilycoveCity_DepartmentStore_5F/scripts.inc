@@ -129,6 +129,16 @@ LilycoveCity_DepartmentStore_5F_EventScript_ClerkFarRight::
 	release
 	end
 
+LilycoveCity_DepartmentStore_5F_EventScript_ClerkBottomNew::
+	lock
+	faceplayer
+	message gText_HowMayIServeYou
+	waitmessage
+	pokemartdecoration2 LilycoveCity_DepartmentStore_5F_OtherDecorations
+	msgbox gText_PleaseComeAgain, MSGBOX_DEFAULT
+	release
+	end
+
 	.align 2
 LilycoveCity_DepartmentStore_5F_Pokemart_Mats:
 	.2byte DECOR_GLITTER_MAT
@@ -149,6 +159,58 @@ LilycoveCity_DepartmentStore_5F_Pokemart_Mats:
 	.2byte DECOR_ATTRACT_MAT
 	.2byte DECOR_FISSURE_MAT
 	.2byte DECOR_SPIKES_MAT
+	.2byte DECOR_NONE
+	release
+	end
+
+LilycoveCity_DepartmentStore_5F_OtherDecorations::
+	.2byte DECOR_SMALL_DESK
+	.2byte DECOR_POKEMON_DESK
+	.2byte DECOR_HEAVY_DESK
+	.2byte DECOR_RAGGED_DESK
+	.2byte DECOR_COMFORT_DESK
+	.2byte DECOR_PRETTY_DESK
+	.2byte DECOR_BRICK_DESK
+	.2byte DECOR_CAMP_DESK
+	.2byte DECOR_HARD_DESK
+	.2byte DECOR_SMALL_CHAIR
+	.2byte DECOR_POKEMON_CHAIR
+	.2byte DECOR_HEAVY_CHAIR
+	.2byte DECOR_PRETTY_CHAIR
+	.2byte DECOR_COMFORT_CHAIR
+	.2byte DECOR_RAGGED_CHAIR
+	.2byte DECOR_BRICK_CHAIR
+	.2byte DECOR_CAMP_CHAIR
+	.2byte DECOR_HARD_CHAIR
+	.2byte DECOR_RED_PLANT
+	.2byte DECOR_TROPICAL_PLANT
+	.2byte DECOR_PRETTY_FLOWERS
+	.2byte DECOR_COLORFUL_PLANT
+	.2byte DECOR_BIG_PLANT
+	.2byte DECOR_GORGEOUS_PLANT
+	.2byte DECOR_RED_BRICK
+	.2byte DECOR_YELLOW_BRICK
+	.2byte DECOR_BLUE_BRICK
+	.2byte DECOR_RED_BALLOON
+	.2byte DECOR_BLUE_BALLOON
+	.2byte DECOR_YELLOW_BALLOON
+	.2byte DECOR_RED_TENT
+	.2byte DECOR_BLUE_TENT
+	.2byte DECOR_SOLID_BOARD
+	.2byte DECOR_SLIDE
+	.2byte DECOR_FENCE_LENGTH
+	.2byte DECOR_FENCE_WIDTH
+	.2byte DECOR_TIRE
+	.2byte DECOR_STAND
+	.2byte DECOR_MUD_BALL
+	.2byte DECOR_BREAKABLE_DOOR
+	.2byte DECOR_SAND_ORNAMENT
+	.2byte DECOR_SILVER_SHIELD
+	.2byte DECOR_GOLD_SHIELD
+	.2byte DECOR_GLASS_ORNAMENT
+	.2byte DECOR_TV
+	.2byte DECOR_ROUND_TV
+	.2byte DECOR_CUTE_TV
 	.2byte DECOR_NONE
 	release
 	end
