@@ -131,6 +131,17 @@ LilycoveCity_DepartmentStore_5F_EventScript_ClerkFarRight::
 
 	.align 2
 LilycoveCity_DepartmentStore_5F_Pokemart_Mats:
+	.2byte DECOR_GLITTER_MAT
+	.2byte DECOR_JUMP_MAT
+	.2byte DECOR_SPIN_MAT
+	.2byte DECOR_C_LOW_NOTE_MAT
+	.2byte DECOR_D_NOTE_MAT
+	.2byte DECOR_E_NOTE_MAT
+	.2byte DECOR_F_NOTE_MAT
+	.2byte DECOR_G_NOTE_MAT
+	.2byte DECOR_A_NOTE_MAT
+	.2byte DECOR_B_NOTE_MAT
+	.2byte DECOR_C_HIGH_NOTE_MAT
 	.2byte DECOR_SURF_MAT
 	.2byte DECOR_THUNDER_MAT
 	.2byte DECOR_FIRE_BLAST_MAT
@@ -138,9 +149,6 @@ LilycoveCity_DepartmentStore_5F_Pokemart_Mats:
 	.2byte DECOR_ATTRACT_MAT
 	.2byte DECOR_FISSURE_MAT
 	.2byte DECOR_SPIKES_MAT
-	.2byte DECOR_GLITTER_MAT
-	.2byte DECOR_JUMP_MAT
-	.2byte DECOR_SPIN_MAT
 	.2byte DECOR_NONE
 	release
 	end
