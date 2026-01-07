@@ -114,6 +114,7 @@ LilycoveCity_DepartmentStore_5F_Pokemart_Posters:
 	.2byte DECOR_LONG_POSTER
 	.2byte DECOR_SEA_POSTER
 	.2byte DECOR_SKY_POSTER
+	.2byte DECOR_KISS_POSTER
 	.2byte DECOR_NONE
 	release
 	end
