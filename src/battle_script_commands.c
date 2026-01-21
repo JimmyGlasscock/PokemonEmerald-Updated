@@ -3219,6 +3219,11 @@ static void Cmd_jumpiftype(void)
         gBattlescriptCurrInstr += 7;
 }
 
+// Static variables for modern EXP share message tracking
+EWRAM_DATA static u8 sExpMessagesShown = 0; // Track how many exp messages we've shown in modern mode
+EWRAM_DATA static u8 sModernExpShareCount = 0; // Track how many Pokemon get exp in modern mode
+EWRAM_DATA static u8 sFirstExpMonId = 0xFF; // Track the first Pokemon that gets exp in modern mode
+
 static void Cmd_getexp(void)
 {
     u16 item;
@@ -3235,6 +3240,11 @@ static void Cmd_getexp(void)
     switch (gBattleScripting.getexpState)
     {
     case 0: // check if should receive exp at all
+        // Reset static variables
+        sExpMessagesShown = 0;
+        sModernExpShareCount = 0;
+        sFirstExpMonId = 0xFF;
+        
         if (GetBattlerSide(gBattlerFainted) != B_SIDE_OPPONENT || (gBattleTypeFlags &
              (BATTLE_TYPE_LINK
               | BATTLE_TYPE_RECORDED_LINK
@@ -3314,6 +3324,20 @@ static void Cmd_getexp(void)
             gBattleScripting.getexpState++;
             gBattleStruct->expGetterMonId = 0;
             gBattleStruct->sentInPokes = sentIn;
+            
+            // Store count for modern exp share mode
+            if (modernExpShareActive && modernExpShareCount > 0)
+            {
+                sExpMessagesShown = 0; // Reset counter
+                sModernExpShareCount = modernExpShareCount; // Store count
+                sFirstExpMonId = 0xFF; // Reset first Pokemon tracker
+            }
+            else
+            {
+                sExpMessagesShown = 0;
+                sModernExpShareCount = 0;
+                sFirstExpMonId = 0xFF;
+            }
         }
         // fall through
     case 2: // set exp value to the poke in expgetter_id and print message
@@ -3410,12 +3434,42 @@ static void Cmd_getexp(void)
                         gBattleStruct->expGetterBattlerId = 0;
                     }
 
-                    PREPARE_MON_NICK_WITH_PREFIX_BUFFER(gBattleTextBuff1, gBattleStruct->expGetterBattlerId, gBattleStruct->expGetterMonId);
-                    // buffer 'gained' or 'gained a boosted'
-                    PREPARE_STRING_BUFFER(gBattleTextBuff2, i);
-                    PREPARE_WORD_NUMBER_BUFFER(gBattleTextBuff3, 5, gBattleMoveDamage);
-
-                    PrepareStringBattle(STRINGID_PKMNGAINEDEXP, gBattleStruct->expGetterBattlerId);
+                    // Show exp message
+                    if (gBattleMoveDamage > 0)
+                    {
+                        // In modern mode, track the first Pokemon that gets exp
+                        if (modernExpShareActive)
+                        {
+                            if (sFirstExpMonId == 0xFF)
+                            {
+                                // This is the first Pokemon getting exp - mark it and show its message
+                                sFirstExpMonId = gBattleStruct->expGetterMonId;
+                                
+                                // Show the first Pokemon's exp message
+                                PREPARE_MON_NICK_WITH_PREFIX_BUFFER(gBattleTextBuff1, gBattleStruct->expGetterBattlerId, gBattleStruct->expGetterMonId);
+                                PREPARE_STRING_BUFFER(gBattleTextBuff2, i);
+                                PREPARE_WORD_NUMBER_BUFFER(gBattleTextBuff3, 5, gBattleMoveDamage);
+                                PrepareStringBattle(STRINGID_PKMNGAINEDEXP, gBattleStruct->expGetterBattlerId);
+                                
+                                sExpMessagesShown = 1; // Mark that we've shown the first message
+                            }
+                            else if (sFirstExpMonId != gBattleStruct->expGetterMonId && sExpMessagesShown == 1 && sModernExpShareCount > 1)
+                            {
+                                // This is the second Pokemon - show "rest of party" message now
+                                PrepareStringBattle(STRINGID_RESTPARTYGAINEDEXP, gBattleStruct->expGetterBattlerId);
+                                sExpMessagesShown = 2; // Mark that we've shown both messages
+                            }
+                            // For all subsequent Pokemon in modern mode, skip the message
+                        }
+                        else
+                        {
+                            // Classic mode: always show message
+                            PREPARE_MON_NICK_WITH_PREFIX_BUFFER(gBattleTextBuff1, gBattleStruct->expGetterBattlerId, gBattleStruct->expGetterMonId);
+                            PREPARE_STRING_BUFFER(gBattleTextBuff2, i);
+                            PREPARE_WORD_NUMBER_BUFFER(gBattleTextBuff3, 5, gBattleMoveDamage);
+                            PrepareStringBattle(STRINGID_PKMNGAINEDEXP, gBattleStruct->expGetterBattlerId);
+                        }
+                    }
                     MonGainEVs(&gPlayerParty[gBattleStruct->expGetterMonId], gBattleMons[gBattlerFainted].species);
                 }
                 gBattleStruct->sentInPokes >>= 1;
@@ -3512,7 +3566,13 @@ static void Cmd_getexp(void)
             if (gBattleStruct->expGetterMonId < PARTY_SIZE)
                 gBattleScripting.getexpState = 2; // loop again
             else
+            {
                 gBattleScripting.getexpState = 6; // we're done
+                // Reset static variables for next battle
+                sExpMessagesShown = 0;
+                sModernExpShareCount = 0;
+                sFirstExpMonId = 0xFF;
+            }
         }
         break;
     case 6: // increment instruction
